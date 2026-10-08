@@ -1,0 +1,36 @@
+---
+title: "Project 2 -Data Tidying. Approach."
+author: "Maxim Arisov"
+format: html
+editor: visual
+---
+
+## **Project 2. Data Transformations.**
+
+## **Approach.** 
+
+ First, I will collect the three distinct wide-format datasets from the Week 5 Discussion items, create a GitHub repository, and upload them there.
+
+One of the datasets will be mine: the Electric Vehicle Population Size History dataset from Washington state. First, I will download the CSV file and check the data. Then I will look at the columns and missing values. Next, I will use R with tidyr and dplyr to clean the data. I will also use pivot_longer() to change the data from wide format to long format.
+
+Then, I will compare Plug-in Hybrid Electric Vehicles (PHEVs) and Battery Electric Vehicles (BEVs). Then, I will use tables and graphs to show how the number of electric vehicles has changed over time.
+
+Overall, I will explain what I found and write a conclusion. I will upload my work to GitHub.
+
+For another dataset, I will be using the Military Expenditure dataset from SIPRI – sheet “Constant (2024) US\$. I will use the same approach as I mentioned above (downloading the CSV file to R, using dplyr and tidyr to clean data, handling missing values, changing to long format, etc.). I will compare the military spending of countries, India, China, and the United States over time. The graphs will be presented to demonstrate how the spending has changed. Finally, I will explain the results and write a conclusion about differences in military spending of China, the USA, and India.
+
+The third dataset I will be using is New York Housing Borough, applying the same strategy as for the previous two datasets. I will compare the prices of the housing across the five boroughs. A conclusion will be provided at the end, and work will be uploaded ot GitHub.
+
+GitHub links of raw data:
+
+<https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/export.csv>
+
+<https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/SIPRI-Milex-data-1949-2025_v1.2%20(1).csv>
+
+<https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/Project%202%20-%20New%20York%20Housing%20Boroughs.csv>
+
+### References
+
+Google Deep Mind. (2026). Gemini 3 Flash \[Large language model\]. \[<https://gemini.google.com.%5D(https://gemini.google.com/)> Accessed October 8th, 2026.
+
+Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2023). ***R for data science*** (2nd ed.). O'Reilly Media. <https://r4ds.hadley.nz/>
