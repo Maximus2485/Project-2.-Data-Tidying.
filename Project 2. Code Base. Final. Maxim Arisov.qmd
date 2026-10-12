@@ -1,0 +1,299 @@
+---
+title: "Project 2 -Data Tidying. Code Base."
+author: "Maxim Arisov"
+date: "10-11-2026"
+format: 
+  html:
+   toc: true
+   code-fold: true
+   theme: flatly
+execute: 
+  echo: true
+  warning: false
+---
+
+## **Project 2. Data Transformations.**
+
+## **Approach.**
+
+ First, I will collect the three distinct wide-format datasets from the Week 5 Discussion items, create a GitHub repository, and upload them there.
+
+One of the datasets will be mine: the Electric Vehicle Population Size History dataset from Washington state. First, I will download the CSV file and check the data. Then I will look at the columns and missing values. Next, I will use R with tidyr and dplyr to clean the data. I will also use pivot_longer() to change the data from wide format to long format.
+
+Then, I will compare Plug-in Hybrid Electric Vehicles (PHEVs) and Battery Electric Vehicles (BEVs). Then, I will use tables and graphs to show how the number of electric vehicles has changed over time.
+
+Overall, I will explain what I found and write a conclusion. I will upload my work to GitHub.
+
+For another dataset, I will be using the Military Expenditure dataset from SIPRI – sheet “Constant (2024) US\$. I will use the same approach as I mentioned above (downloading the CSV file to R, using dplyr and tidyr to clean data, handling missing values, changing to long format, etc.). I will compare the military spending of countries, Russia, China, and the United States over time. The graphs will be presented to demonstrate how the spending has changed. Finally, I will explain the results and write a conclusion about differences in military spending of China, the USA, and Russia.
+
+The third dataset I will be using is New York Housing Borough, applying the same strategy as for the previous two datasets. I will compare the prices of the housing across the five boroughs. A conclusion will be provided at the end, and work will be uploaded ot GitHub.
+
+GitHub links of raw data:
+
+<https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/export.csv>
+
+<https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/SIPRI-Milex-data-1949-2025_v1.2.csv>
+
+<https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/Project%202%20-%20New%20York%20Housing%20Boroughs.csv>
+
+## **Code Base**
+
+```{r}
+#Lets upload required packages to use for all three datasets
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+```
+
+### **Electric Vehicle Population dataset.**
+
+### **3.1 Raw data construction.**
+
+```{r}
+# The dataset was created as CSV file and uploaded into GitHub repository. Lets download the CSV file as raw data from GitHub repository and check the first dataset.
+
+electric_vehicle_population_raw <- read.csv("https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/export.csv")
+head(electric_vehicle_population_raw)
+view(electric_vehicle_population_raw)
+
+
+```
+
+### **3.2 Data import and tidying**
+
+```{r}
+# Lets rename the columns for easier work with dataset
+  electric_vehicle_population_raw <- electric_vehicle_population_raw %>%
+    rename(phev_count = Plug.In.Hybrid.Electric.Vehicle..PHEV..Count,
+           bev_count = Battery.Electric.Vehicle..BEV..Count,
+           ev_total = Electric.Vehicle..EV..Total
+      )
+  view(electric_vehicle_population_raw)
+  
+```
+
+```{r}
+# Lets check whether this dataset has any missing values with a help of dplyr
+electric_vehicle_population_raw %>%
+  summarize(across(c(phev_count,bev_count, ev_total, Date), ~ sum(is.na(.))))
+```
+
+```{r}
+# Lets reshape the data from wide to long by combining vehicles into one category column.
+electric_vehicle_long <- electric_vehicle_population_raw %>%
+  pivot_longer(
+    cols = c(phev_count, bev_count),
+    names_to = "type_of_vehicle",
+    values_to = "count"
+  )
+head(electric_vehicle_long)
+```
+
+```{r}
+#Lets convert date to date format and count to numeric
+electric_vehicle_long <- electric_vehicle_long |>   # LLM was used to remove comma characters in count and ev total columns and create the date to date format
+  mutate(
+    Date = as.Date(Date, format = "%B %d, %Y"),
+    count =as.numeric(gsub(",", "", count)),
+    ev_total = as.numeric(gsub(",", "", ev_total))
+  )
+head(electric_vehicle_long)
+```
+
+```{r}
+#Lets compare vehicle types
+electric_vehicle_summary <- electric_vehicle_long |>
+  group_by(type_of_vehicle) |>
+  summarize(
+    Average_Count = mean(count, na.rm =TRUE),
+    .groups ="drop"
+  )
+electric_vehicle_summary
+```
+
+### **3.3 Analysis of electric vehicle population dataset**
+
+```{r}
+# Lets create the graph with ggplot and show changes occuring over time
+  
+ggplot(electric_vehicle_long, 
+  aes(x = Date, y= count, color =type_of_vehicle, group = type_of_vehicle)) + 
+  geom_line() + 
+  labs(
+    title ="Electric Vehicle Population Over Time",
+    x = "Date",
+    y = "Number of Vehicles",
+    color = "Vehicle Type"
+  )
+```
+
+### **Conclusion**
+
+The graph shows that the number of Electric vehicles in Washington State has increased over time. Moreover, both types of vehicles, BEV and PHEV, have increased in number since 2017. However, we can see from the graph that BEVs increased dramatically by 2026, totaling 240,000 cars, compared to PHEVs with a total of approximately 58,000 cars. Thus, battery electric vehicles are more popular and have been more common in Washington State.
+
+### New York Housing Boroughs dataset.
+
+### 3.1 Raw data construction
+
+```{r}
+#The dataset was created as CSV file and uploaded into GitHub repository. Lets import original data as CSV file in raw format from GitHub repository
+housing_raw <- read.csv("https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/Project%202%20-%20New%20York%20Housing%20Boroughs.csv")
+view(housing_raw)
+
+#Lets check original data
+dim(housing_raw)
+head(housing_raw)
+names(housing_raw)
+```
+
+### **3.2 Data import and tidying**
+
+```{r}
+#Lets change Year to an integer, put months in the correct order, remove commas from values with gsub, change the borough values to numbers. 
+housing_raw <- housing_raw |>
+  mutate(
+    Year = as.integer(Year),
+    Month = factor(Month, levels = month.abb, ordered =TRUE),
+    across(Bronx:Staten.Island,
+           ~as.numeric(gsub(",", "", .)))
+    )
+head(housing_raw)
+
+```
+
+```{r}
+#Lets change from wide to long format using tidyr function
+housing_long <- housing_raw |>
+  pivot_longer(
+    cols =c(Bronx,Brooklyn, Manhattan, Queens, Staten.Island),
+    names_to = "Borough",
+    values_to = "Value"
+  )
+view(housing_long)
+```
+
+```{r}
+#Lets check our dataset for missing values. LLM was used to help to find in alternative and simple way
+colSums(is.na(housing_long))
+```
+
+```{r}
+#Lets calculate average by borough,but the missing values will be ignored (na.rm=TRUE)
+housing_summary <- housing_long |>
+  group_by(Borough) |>
+  summarize(
+    Average_Value = mean(Value, na.rm =TRUE),
+    .groups ="drop"
+  )
+housing_summary
+```
+
+### **3.3 Analysis of dataset**
+
+```{r}
+# Lets create graph to see average housing value by Borough
+ggplot(housing_summary,
+       aes(x= Borough, y = Average_Value, fill= Borough))+
+  geom_col()+
+  labs(
+    title = "Average Housing Value by Borough",
+    x="Borough",
+    y="Average Value"
+  )
+```
+
+### **Conclusion**
+
+Thus, the graph shows that housing values are different across the New York City boroughs. Therefore, while the Bronx has the lowest average value with approximately 600 the Manhattan has the highest housing average value at about 1,150. In its turn, Brooklyn borough comes next after Manhattan with an average value of about 890. Lastly, Staten Island and Queens boroughs have average values of approximately 710 and 680.
+
+Overall, Manhattan has the highest housing values than other 4 borough, and Bronx has the lowest. Thus, it shows that housing values vary among the boroughs.
+
+### **Military Expenditure dataset**
+
+### **3.1 Raw Data construction**
+
+```{r}
+# The dataset was created as CSV file and uploaded into GitHub repository. 
+# Lets import raw data and remove unnessary first 4 rows, keep original column headers as they are, and assign cells containing empty space, triple dots, etc. as missing values.  
+military_expenditure_raw <- read.csv("https://raw.githubusercontent.com/Maximus2485/Project-2.-Data-Tidying./refs/heads/main/SIPRI-Milex-data-1949-2025_v1.2.csv",
+                                     skip = 4,
+                                     check.names = FALSE,
+                                     na.strings = c("","...", "xxx")
+)
+view(military_expenditure_raw)
+head(military_expenditure_raw)
+
+
+```
+
+### **3.2 Import and Tidying of dataset.**
+
+```{r}
+#Lets use the first row as column names 
+names(military_expenditure_raw) <- as.character(military_expenditure_raw[1,])
+#Lets remove the first row
+military_expenditure_raw <- military_expenditure_raw[-1,]
+view(military_expenditure_raw)
+```
+
+```{r}
+#Lets remove extra columns NA
+military_expenditure_clean <- military_expenditure_raw |>
+  select(Country, matches("^[0-9]{4}$")) # A pattern matching rule to find strings that consist of exaclty four numeric digits was used with LLM.
+view(military_expenditure_clean)
+```
+
+```{r}
+#Lets select three countries "Russia", "China", and "United States of America" start from year 1992 and change to long format.
+military_expenditure_long <- military_expenditure_clean |>
+  filter(Country %in% c("China", "Russia", "United States of America"))|>
+  pivot_longer(
+    cols = -Country,
+    names_to = "Year",
+    values_to = "Expenditure",
+    values_transform = list(Expenditure =as.character)
+  )|>
+  mutate(
+    Year =as.integer(Year),
+    Expenditure=as.numeric(gsub(",", "", Expenditure))
+  )|>
+  filter(Year >= 1992)
+view(military_expenditure_long)
+```
+
+```{r}
+#Lets calculate average spending of the three countries 
+military_expenditure_summary <- military_expenditure_long |>
+  group_by(Country)|>
+  summarize(
+    Average_Spending = mean(Expenditure, na.rm = TRUE),
+    .groups ="drop"
+  )
+military_expenditure_summary
+```
+
+### **3.3 Analysis of dataset.**
+
+```{r}
+#Lets create the graph to see military expenditure by country
+ggplot(military_expenditure_long, aes(x=Year, y=Expenditure, color= Country)) +
+  geom_line() +
+  labs(
+    title = "Military Expenditure by Country",
+    x = "Year",
+    y = "Military Expenditure (Million US Dollars)",
+    color = "Country"
+  )
+```
+
+### **Conclusion**
+
+The graph reveals that United States spends more the most for the military throughout the period from 1992 to 2025 with most of the spending, 1 million, million, 61 thousand, 600 hundred and 74 dollars, falling on 2010 year. In general we can notice a change within military spending for all three countries from 1992 to 2025. Russia had the lowest military spending comparing to China and United States throughout the whole period, but it started increasing spending on military starting from 2020. In its turn, China has been increasing spending on military gradually, especially starting from 2000, with highest spending in 2025 of approximately 335,000 million US dollars.
+
+Overall, the United States has been spending the most on its military, while Russia showed a sharp increase starting from 2020, and China revealed a steady growth.
+
+### References
+
+Google Deep Mind. (2026). Gemini 3 Flash \[Large language model\]. \[<https://gemini.google.com.%5D(https://gemini.google.com/)> Accessed October11th, 2026.
+
+Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2023). ***R for data science*** (2nd ed.). O'Reilly Media. <https://r4ds.hadley.nz/>
